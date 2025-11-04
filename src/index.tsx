@@ -1,18 +1,20 @@
-import React from "react"
 import { createRoot } from "react-dom/client"
+import { tgdLoadGlb } from "@tolokoban/tgd"
 
-import State from "@/state"
+import { State } from "@/state"
 
 import App from "./app"
-import FontDosis from "./fonts/dosis"
+
+import GlbURL from "@/gfx/digital_stencil_plaque.glb"
 
 import "./index.css"
 
 async function start() {
-    FontDosis.load300()
-    FontDosis.load700()
+    const glb = await tgdLoadGlb(GlbURL)
+    State.assets.glb.value = glb
     const container = document.getElementById("app")
-    if (!container) throw Error("Missing element with id #app!")
+    if (!container) throw new Error("Missing element with id #app!")
+
     createRoot(container).render(<MainPage />)
 
     const splash = document.getElementById("tgd-logo")
@@ -23,8 +25,7 @@ async function start() {
 }
 
 function MainPage() {
-    const lang = State.language.useValue()
-    return <App lang={lang} />
+    return <App />
 }
 
 start()

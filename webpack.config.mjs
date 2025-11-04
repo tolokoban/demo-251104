@@ -190,7 +190,7 @@ export default env => {
                     },
                 },
                 {
-                    test: /\.(bin|glb|dat|swc)$/i,
+                    test: /\.(glb|bin|glb|dat|swc)$/i,
                     // More information here https://webpack.js.org/guides/asset-modules/
                     type: "asset",
                     generator: {

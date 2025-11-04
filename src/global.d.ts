@@ -73,3 +73,8 @@ declare module "*.bin" {
     const value: string
     export = value
 }
+
+declare module "*.glb" {
+    const value: string
+    export = value
+}

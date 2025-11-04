@@ -1,17 +1,17 @@
 import {
-    tgdActionCreateCameraInterpolation,
     TgdCameraPerspective,
     TgdContext,
     TgdControllerCameraOrbit,
     tgdEasingFunctionOutBack,
-    TgdGeometryBox,
-    TgdMaterialNormals,
     TgdPainterClear,
-    TgdPainterMesh,
+    TgdPainterLogic,
     TgdPainterState,
     TgdQuat,
     webglPresetDepth,
 } from "@tolokoban/tgd"
+
+import { State } from "@/state"
+import { PainterMain } from "@/painter/main/main"
 
 export function useGameHandler() {
     return (canvas: HTMLCanvasElement | null) => {
@@ -19,18 +19,26 @@ export function useGameHandler() {
 
         const camera = new TgdCameraPerspective({
             transfo: {
-                distance: 3,
+                distance: 20,
                 position: [0, 0, 0],
             },
             far: 1000,
             near: 0.1,
             fovy: Math.PI / 4,
-            zoom: 0.1,
+            zoom: 1,
         })
         const context = new TgdContext(canvas, { camera })
         const state = new TgdPainterState(context, {
             depth: webglPresetDepth.lessOrEqual,
             children: [
+                new TgdPainterLogic(() => {
+                    const ratio = PainterMain.width / PainterMain.height
+                    if (context.aspectRatio > ratio) {
+                        camera.spaceHeightAtTarget = 2 * PainterMain.height
+                    } else {
+                        camera.spaceWidthAtTarget = 7 * PainterMain.width
+                    }
+                }),
                 new TgdPainterClear(context, {
                     color: [0, 0, 0, 1],
                     depth: 1,
@@ -38,28 +46,25 @@ export function useGameHandler() {
             ],
         })
         context.add(state)
-        const geometry = new TgdGeometryBox()
-        const material = new TgdMaterialNormals()
-        const mesh = new TgdPainterMesh(context, {
-            geometry,
-            material,
-        })
-        state.add(mesh)
-        context.animSchedule({
-            action: tgdActionCreateCameraInterpolation(context.camera, {
-                zoom: 1,
-                orientation: new TgdQuat()
-                    .face("+Y+Z+X")
-                    .rotateAroundX(Math.random())
-                    .rotateAroundY(Math.random()),
-            }),
-            duration: 1.5,
-            easingFunction: tgdEasingFunctionOutBack,
-            onEnd() {
-                new TgdControllerCameraOrbit(context, {
-                    inertiaOrbit: 900,
-                })
-            },
+        const asset = State.assets.glb.value
+        if (!asset) throw new Error("Asset has not been loaded yet!")
+
+        for (let index = 0; index < 14; index++) {
+            const mesh = new PainterMain(context, index)
+            state.add(mesh)
+            context.animSchedule({
+                action: (t: number) => {
+                    mesh.transfo.setOrientation(
+                        new TgdQuat().rotateAroundX(Math.PI * 2 * t)
+                    )
+                },
+                delay: index * 0.5,
+                duration: 3,
+                easingFunction: tgdEasingFunctionOutBack,
+            })
+        }
+        new TgdControllerCameraOrbit(context, {
+            inertiaOrbit: 900,
         })
         context.paint()
     }
