@@ -7,6 +7,7 @@ import {
     TgdPainterLogic,
     TgdPainterState,
     TgdQuat,
+    TgdTextureCube,
     webglPresetDepth,
 } from "@tolokoban/tgd"
 
@@ -47,9 +48,10 @@ export function useGameHandler() {
         const asset = State.assets.glb.value
         if (!asset) throw new Error("Asset has not been loaded yet!")
 
+        const skybox = new TgdTextureCube(context, State.assets.skybox.value)
         const letters: PainterMain[] = []
         for (let index = 0; index < 14; index++) {
-            const mesh = new PainterMain(context, index)
+            const mesh = new PainterMain(context, index, skybox)
             letters.push(mesh)
             state.add(mesh)
             // context.animSchedule({

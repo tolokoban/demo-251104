@@ -10,6 +10,7 @@ import {
     TgdPainterMeshGltf,
     TgdPainterNode,
     TgdQuat,
+    TgdTextureCube,
     TgdVec3,
 } from "@tolokoban/tgd"
 import { Material } from "./material"
@@ -47,7 +48,8 @@ export class PainterMain extends TgdPainterNode {
 
     constructor(
         private readonly context: TgdContext,
-        index: number
+        index: number,
+        private readonly skybox: TgdTextureCube
     ) {
         super()
         const asset = State.assets.glb.value
@@ -57,10 +59,12 @@ export class PainterMain extends TgdPainterNode {
         const materialSocle = (this.materialSocle = new Material({
             color2D: [0.1, 0.1, 0.1, 1],
             color3D: [0.5, 0.5, 0.5, 1],
+            skybox,
         }))
         const materialLetter = (this.materialLetter = new Material({
             color2D: [1, 1, 1, 1],
-            color3D: [0.4, 0.4, 0.4, 1],
+            color3D: [0.8, 0.5, 0.2, 1],
+            skybox,
         }))
         const socle = new TgdPainterMeshGltf(context, {
             asset,
@@ -122,7 +126,7 @@ export class PainterMain extends TgdPainterNode {
                 actionMove(alpha)
             },
             onEnd: () => {
-                const duration = 30
+                const duration = 60
                 this.runningAnimations = context.animSchedule({
                     duration,
                     action: (alpha) => {
@@ -130,8 +134,8 @@ export class PainterMain extends TgdPainterNode {
                         const t1 = t
                         const t2 = t * 1.344
                         const orientation = new TgdQuat()
-                        orientation.rotateAroundX(Math.sin(t1) * 0.15)
-                        orientation.rotateAroundY(Math.sin(t2) * 0.15)
+                        orientation.rotateAroundX(Math.sin(t1) * 0.15 * 3)
+                        orientation.rotateAroundY(Math.sin(t2) * 0.15 * 3)
                         this.transfo.orientation = orientation
                     },
                     onEnd: () => {

@@ -2,4 +2,6 @@ node_modules/
 stats.json
 dist/
 build/
+*.blend1
+*.blend2
 
