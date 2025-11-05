@@ -32,12 +32,10 @@ export function useGameHandler() {
             depth: webglPresetDepth.lessOrEqual,
             children: [
                 new TgdPainterLogic(() => {
-                    const ratio = PainterMain.width / PainterMain.height
-                    if (context.aspectRatio > ratio) {
-                        camera.spaceHeightAtTarget = 2 * PainterMain.height
-                    } else {
-                        camera.spaceWidthAtTarget = 7 * PainterMain.width
-                    }
+                    context.camera.fitSpaceAtTarget(
+                        7.35 * PainterMain.width,
+                        2.1 * PainterMain.height
+                    )
                 }),
                 new TgdPainterClear(context, {
                     color: [0, 0, 0, 1],
@@ -49,23 +47,38 @@ export function useGameHandler() {
         const asset = State.assets.glb.value
         if (!asset) throw new Error("Asset has not been loaded yet!")
 
+        const letters: PainterMain[] = []
         for (let index = 0; index < 14; index++) {
             const mesh = new PainterMain(context, index)
+            letters.push(mesh)
             state.add(mesh)
-            context.animSchedule({
-                action: (t: number) => {
-                    mesh.transfo.setOrientation(
-                        new TgdQuat().rotateAroundX(Math.PI * 2 * t)
-                    )
-                },
-                delay: index * 0.5,
-                duration: 3,
-                easingFunction: tgdEasingFunctionOutBack,
-            })
+            // context.animSchedule({
+            //     action: (t: number) => {
+            //         mesh.transfo.setOrientation(
+            //             new TgdQuat().rotateAroundX(Math.PI * 2 * t)
+            //         )
+            //     },
+            //     delay: index * 0.5,
+            //     duration: 3,
+            //     easingFunction: tgdEasingFunctionOutBack,
+            // })
         }
-        new TgdControllerCameraOrbit(context, {
-            inertiaOrbit: 900,
-        })
         context.paint()
+        const findLetterAtPosition = (xScreen: number, yScreen: number) => {
+            const { camera } = context
+            const x = (camera.spaceWidthAtTarget * xScreen) / 2
+            const y = (camera.spaceHeightAtTarget * yScreen) / 2
+            for (const letter of letters) {
+                if (letter.hitTest(x, y)) return letter
+            }
+            return undefined
+        }
+        context.inputs.pointer.eventTap.addListener((evt) => {
+            for (const letter of letters) letter.unselect()
+            const letter = findLetterAtPosition(evt.x, evt.y)
+            if (!letter) return
+
+            letter.select()
+        })
     }
 }

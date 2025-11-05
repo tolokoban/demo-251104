@@ -12,8 +12,8 @@ importers:
         specifier: ^0.6.0
         version: 0.6.0(react-dom@19.2.0(react@19.2.0))(react@19.2.0)
       '@tolokoban/tgd':
-        specifier: ^2.0.57
-        version: 2.0.57
+        specifier: file:../../game/tgd2
+        version: file:../../game/tgd2
       '@tolokoban/type-guards':
         specifier: ^0.9.0
         version: 0.9.0
@@ -1110,8 +1110,8 @@ packages:
       react: ^19.2.0
       react-dom: 19.2.0
 
-  '@tolokoban/tgd@2.0.57':
-    resolution: {integrity: sha512-axU8Kvwy8o2967nuB2xGEDn3yyntegZsjIY7rxBfQY+NYrHq/BLRHA1T6DkPoxu8NOncT/sPi0d1+WxTz4sxFA==}
+  '@tolokoban/tgd@file:../../game/tgd2':
+    resolution: {directory: ../../game/tgd2, type: directory}
 
   '@tolokoban/type-guards@0.9.0':
     resolution: {integrity: sha512-MLOlLsGBrvol1yR25K/kai7/DoZtVYHmedRxKmjS8We7vwwas/9wyVvijAg0bcAucOSNOyWtviNikLkmvri9lQ==}
@@ -6132,7 +6132,7 @@ snapshots:
       react: 19.2.0
       react-dom: 19.2.0(react@19.2.0)
 
-  '@tolokoban/tgd@2.0.57':
+  '@tolokoban/tgd@file:../../game/tgd2':
     dependencies:
       '@loaders.gl/core': 4.3.4
       '@loaders.gl/draco': 4.3.4(@loaders.gl/core@4.3.4)
