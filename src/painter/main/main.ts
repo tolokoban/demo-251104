@@ -5,15 +5,13 @@ import {
     TgdAnimation,
     tgdCalcMix,
     TgdContext,
-    TgdLight,
-    TgdMaterialDiffuse,
     TgdPainterMeshGltf,
     TgdPainterNode,
     TgdQuat,
     TgdTextureCube,
-    TgdVec3,
 } from "@tolokoban/tgd"
 import { Material } from "./material"
+import { AnimationLightFading } from "./animation-light-fading"
 
 const NAMES = [
     "Lemanic",
@@ -40,16 +38,18 @@ export class PainterMain extends TgdPainterNode {
     readonly xOrigin: number
     readonly yOrigin: number
 
+    private _lightColor2D: number = 1
     private animating: "none" | "foreward" | "backward" = "none"
     private readonly materialSocle: Material
     private readonly materialLetter: Material
     private runningAnimations: TgdAnimation[] = []
     private _transition = 0
+    private readonly animLightFading: AnimationLightFading
 
     constructor(
-        private readonly context: TgdContext,
+        public readonly context: TgdContext,
         index: number,
-        private readonly skybox: TgdTextureCube
+        skybox: TgdTextureCube
     ) {
         super()
         const asset = State.assets.glb.value
@@ -58,12 +58,12 @@ export class PainterMain extends TgdPainterNode {
         this.name = NAMES[index] ?? `Invalid index #${index}!`
         const materialSocle = (this.materialSocle = new Material({
             color2D: [0.1, 0.1, 0.1, 1],
-            color3D: [0.5, 0.5, 0.5, 1],
+            color3D: [0.4, 0.45, 0.5, 1],
             skybox,
         }))
         const materialLetter = (this.materialLetter = new Material({
             color2D: [1, 1, 1, 1],
-            color3D: [0.8, 0.5, 0.2, 1],
+            color3D: [0.9, 0.7, 0.2, 1],
             skybox,
         }))
         const socle = new TgdPainterMeshGltf(context, {
@@ -95,6 +95,18 @@ export class PainterMain extends TgdPainterNode {
         this.transfo.setPosition(x, y, 0)
         this.xOrigin = x
         this.yOrigin = y
+        this.animLightFading = new AnimationLightFading(this)
+        this.lightColor2D = 0
+        this.animLightFading.animToLight()
+    }
+
+    get lightColor2D() {
+        return this._lightColor2D
+    }
+    set lightColor2D(value: number) {
+        this._lightColor2D = value
+        this.materialSocle.lightColor2D = value
+        this.materialLetter.lightColor2D = value
     }
 
     private get transition() {
@@ -106,9 +118,17 @@ export class PainterMain extends TgdPainterNode {
         this.materialLetter.transition = value
     }
 
-    readonly select = () => {
+    animToDark() {
+        this.animLightFading.animToDark()
+    }
+
+    animToLight() {
+        this.animLightFading.animToLight()
+    }
+
+    readonly select = (): boolean => {
         console.log("Select", this.name)
-        if (this.animating !== "none") return
+        if (this.animating !== "none") return false
 
         const { xOrigin, yOrigin, context } = this
         this.animating = "foreward"
@@ -144,6 +164,7 @@ export class PainterMain extends TgdPainterNode {
                 })
             },
         })
+        return true
     }
 
     readonly unselect = () => {

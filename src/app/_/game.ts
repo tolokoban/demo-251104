@@ -54,16 +54,6 @@ export function useGameHandler() {
             const mesh = new PainterMain(context, index, skybox)
             letters.push(mesh)
             state.add(mesh)
-            // context.animSchedule({
-            //     action: (t: number) => {
-            //         mesh.transfo.setOrientation(
-            //             new TgdQuat().rotateAroundX(Math.PI * 2 * t)
-            //         )
-            //     },
-            //     delay: index * 0.5,
-            //     duration: 3,
-            //     easingFunction: tgdEasingFunctionOutBack,
-            // })
         }
         context.paint()
         const findLetterAtPosition = (xScreen: number, yScreen: number) => {
@@ -78,9 +68,14 @@ export function useGameHandler() {
         context.inputs.pointer.eventTap.addListener((evt) => {
             for (const letter of letters) letter.unselect()
             const letter = findLetterAtPosition(evt.x, evt.y)
-            if (!letter) return
+            if (!letter) {
+                for (const letter of letters) letter.animToLight()
+                return
+            }
 
-            letter.select()
+            if (letter.select())
+                for (const letter of letters) letter.animToDark()
+            else for (const letter of letters) letter.animToLight()
         })
     }
 }

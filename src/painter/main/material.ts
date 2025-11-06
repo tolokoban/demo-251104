@@ -14,6 +14,7 @@ interface MaterialOptions {
 
 export class Material extends TgdMaterial {
     public transition = 0
+    public lightColor2D = 1
     public readonly color2D = new TgdVec4()
     public readonly color3D = new TgdVec4()
 
@@ -41,7 +42,17 @@ export class Material extends TgdMaterial {
             },
             setUniforms: (program, time, delay) => {
                 program.uniform1f("uniTransition", this.transition)
-                program.uniform4fv("uniColor2D", this.color2D)
+                program.uniform4fv(
+                    "uniColor2D",
+                    this.color2D
+                        .clone()
+                        .scale4([
+                            this.lightColor2D,
+                            this.lightColor2D,
+                            this.lightColor2D,
+                            1,
+                        ])
+                )
                 program.uniform4fv("uniColor3D", this.color3D)
                 program.uniform3fv("uniLightDir", this.lightDir)
                 program.uniform1f("uniSpecularExponent", 30)
@@ -62,14 +73,21 @@ export class Material extends TgdMaterial {
                     ["return uniColor2D;"],
                     "}",
                 ],
+                getSkyboxColor: [
+                    `vec4 getSkyboxColor(vec3 normal) {`,
+                    [
+                        `vec3 normal2 = mat3(1, 0, 0, 0, 0, -1, 0, 1, 0) * mat3(uniTransfoMatrix) * normal;`,
+                        `vec4 skybox = texture(uniSkybox, reflect(varPosition.xyz, normal2));`,
+                        `skybox *= skybox;`,
+                        `return skybox;`,
+                    ],
+                    "}",
+                ],
                 getColor3D: [
                     `vec4 getColor3D() {`,
                     [
                         `vec3 normal = normalize(varNormal);`,
-                        `vec3 normal2 = mat3(uniTransfoMatrix) * normal;`,
-                        `vec4 skybox = texture(uniSkybox, reflect(varPosition.xyz, normal2));`,
-                        `skybox *= skybox;`,
-                        // `return skybox;`,
+                        `vec4 skybox = getSkyboxColor(normal);`,
                         `float light = 1.0 - dot(normal, uniLightDir);`,
                         "light *= .5;",
                         `vec4 color = uniColor3D * skybox;`,
@@ -78,8 +96,8 @@ export class Material extends TgdMaterial {
                         `spec = pow(spec, uniSpecularExponent) * uniSpecularIntensity;`,
                         `color = vec4(`,
                         `  color.rgb * (`,
-                        `    vec3(.1) + vec3(.7, .8, .9) * light`,
-                        `  ) + vec3(spec),`,
+                        `    .5 * skybox.rgb + vec3(.7, .8, .9) * light`,
+                        `  ) + skybox.rgb * spec,`,
                         `  1.0`,
                         `);`,
                         `return color;`,
